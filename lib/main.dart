@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:audioplayers/audio_cache.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-//SOUND FUNCTION
+//SOUND PATH and DECLARATION
 const alarmAudioPath = "loud_alarm.mp3";
 
 class MyApp extends StatelessWidget {
@@ -40,6 +39,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   int timeForTimer = 0;
   String timetodisplay = "";
   bool checktimer = true;
+  //CALLS SOUND FUNCTION
   static AudioCache player = new AudioCache();
 
   void initState() {
