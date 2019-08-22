@@ -2,10 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:audioplayers/audio_cache.dart';
 
 void main() {
   runApp(MyApp());
 }
+
+//SOUND FUNCTION
+const alarmAudioPath = "loud_alarm.mp3";
 
 class MyApp extends StatelessWidget {
   @override
@@ -36,6 +40,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
   int timeForTimer = 0;
   String timetodisplay = "";
   bool checktimer = true;
+  static AudioCache player = new AudioCache();
 
   void initState() {
     tb = TabController(
@@ -59,15 +64,8 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
         if (timeForTimer < 1 || checktimer == false) {
           t.cancel();
           if (timeForTimer == 0) {
-            //INSERT MUSIC OR NEW SCREEN OR TOAST HERE
-            Fluttertoast.showToast(
-                msg: "Tempo Terminado!",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIos: 1,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0);
+            //INSERT MUSIC OR TOAST HERE
+            player.play(alarmAudioPath);
           }
           Navigator.pushReplacement(
               context,
@@ -262,9 +260,146 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
     );
   }
 
+  bool startispressed = true;
+  bool stopispressed = true;
+  bool resetispressed = true;
+  String stoptimetodisplay = "00:00:00";
+  var swatch = Stopwatch();
+  final dur = const Duration(seconds: 1);
+
+  void starttimer() {
+    Timer(dur, keeprunning);
+  }
+
+  void keeprunning() {
+    if (swatch.isRunning) {
+      starttimer();
+    }
+    setState(() {
+      stoptimetodisplay = swatch.elapsed.inHours.toString().padLeft(2, "0") +
+          ":" +
+          (swatch.elapsed.inMinutes % 60).toString().padLeft(2, "0") +
+          ":" +
+          (swatch.elapsed.inSeconds % 60).toString().padLeft(2, "0");
+    });
+  }
+
+  void startstopwatch() {
+    setState(() {
+      stopispressed = false;
+      startispressed = false;
+    });
+    swatch.start();
+    starttimer();
+  }
+
+  void stopstopwatch() {
+    setState(() {
+      stopispressed = true;
+      resetispressed = false;
+    });
+    swatch.stop();
+  }
+
+  void resetstopwatch() {
+    setState(() {
+      startispressed = true;
+      resetispressed = true;
+    });
+    swatch.reset();
+    stoptimetodisplay = "00:00:00";
+  }
+
+  Widget stopwatch() {
+    return Container(
+      color: Colors.grey,
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            flex: 6,
+            child: Container(
+              alignment: Alignment.center,
+              child: Text(
+                stoptimetodisplay,
+                style: TextStyle(
+                  fontSize: 50.0,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      //BUTTON STOP
+                      RaisedButton(
+                        onPressed: stopispressed ? null : stopstopwatch,
+                        color: Colors.red,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40.0,
+                          vertical: 15.0,
+                        ),
+                        child: Text(
+                          "Stop",
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+
+                      //BUTTON RESET
+                      RaisedButton(
+                        onPressed: resetispressed ? null : resetstopwatch,
+                        color: Colors.teal,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40.0,
+                          vertical: 15.0,
+                        ),
+                        child: Text(
+                          "Reset",
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+
+                  //BUTTON START
+                  RaisedButton(
+                    onPressed: startispressed ? startstopwatch : null,
+                    color: Colors.green,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 60.0,
+                      vertical: 20.0,
+                    ),
+                    child: Text(
+                      "Start",
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -289,7 +424,7 @@ class _HomepageState extends State<Homepage> with TickerProviderStateMixin {
       body: TabBarView(
         children: <Widget>[
           timer(),
-          Text("Contador"),
+          stopwatch(),
         ],
         controller: tb,
       ),
